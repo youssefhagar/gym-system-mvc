@@ -1,0 +1,35 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+# Visual Studio
+.vs/
+
+# Build folders
+bin/
+obj/
+
+# User files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Rider / JetBrains
+.idea/
+
+# Publish folder
+publish/
+bin/
+obj/
+.vs/
+wwwroot/lib/
+*.user
+*.suo
