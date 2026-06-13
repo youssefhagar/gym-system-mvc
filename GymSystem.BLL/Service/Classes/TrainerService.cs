@@ -1,4 +1,5 @@
-﻿using GymSystem.BLL.Service.Interfaces;
+﻿using AutoMapper;
+using GymSystem.BLL.Service.Interfaces;
 using GymSystem.BLL.ViewModels.TrainerViewModels;
 using GymSystem.DAL.Data.Models;
 using GymSystem.DAL.Repository.Interfaces;
@@ -13,26 +14,21 @@ namespace GymSystem.BLL.Service.Classes
     public class TrainerService : ITrainerService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper mapper;
 
-        public TrainerService(IUnitOfWork unitOfWork)
+        public TrainerService(IUnitOfWork unitOfWork,IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
-        public async Task<IEnumerable<TrainerViewModel>> GetAllAsync(CancellationToken ct = default)
+        public async Task<IEnumerable<TrainerViewModel>> GetAllAsync(CancellationToken ct = default) // Added outomapper
         {
             var trainers = await unitOfWork
                 .GetRepository<Trainer>()
                 .GetAllAsync(ct: ct);
 
-            return trainers.Select(t => new TrainerViewModel
-            {
-                Id = t.Id,
-                Name = t.Name,
-                Email = t.Email,
-                Phone = t.Phone,
-                Specialty = t.Specialty.ToString()
-            });
+            return mapper.Map<IEnumerable<TrainerViewModel>>(trainers);
         }
 
         public async Task<TrainerViewModel?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -44,18 +40,7 @@ namespace GymSystem.BLL.Service.Classes
             if (trainer is null)
                 return null;
 
-            return new TrainerViewModel
-            {
-                Id = trainer.Id,
-                Name = trainer.Name,
-                Email = trainer.Email,
-                Phone = trainer.Phone,
-                Specialty = trainer.Specialty.ToString(),
-                //Gender = trainer.Gender.ToString(),
-                //DateOfBirth = trainer.DateOfBirth.ToShortDateString(),
-                //Address = trainer.Address.Street
-
-            };
+            return mapper.Map<TrainerViewModel>(trainer);
         }
 
         public async Task<bool> CreateAsync(CreateTrainerViewModel model, CancellationToken ct = default)
@@ -67,21 +52,7 @@ namespace GymSystem.BLL.Service.Classes
             if (emailExists)
                 return false;
 
-            var trainer = new Trainer
-            {
-                Name = model.Name,
-                Email = model.Email,
-                Phone = model.Phone,
-                Gender = model.Gender,
-                DateOfBirth = model.DateOfBirth,
-                Specialty = model.Specialty,
-                Address = new Address
-                {
-                    Street = model.Street,
-                    City = model.City,
-                    BuildingNumber = model.BuildingNumber
-                }
-            };
+            var trainer = mapper.Map<CreateTrainerViewModel, Trainer>(model);
 
             unitOfWork.GetRepository<Trainer>().AddAsync(trainer);
 
@@ -95,15 +66,7 @@ namespace GymSystem.BLL.Service.Classes
             if (trainer is null)
                 return false;
 
-            trainer.Name = model.Name;
-            trainer.Email = model.Email;
-            trainer.Phone = model.Phone;
-            trainer.Specialty = model.Specialty.Value;
-
-            trainer.Address.Street = model.Street;
-            trainer.Address.City = model.City;
-            trainer.Address.BuildingNumber = model.BuildingNumber;
-
+            mapper.Map(model, trainer);
             trainer.UpdatedAt = DateTime.Now;
 
             unitOfWork.GetRepository<Trainer>().UpdateAsync(trainer);
@@ -133,17 +96,7 @@ namespace GymSystem.BLL.Service.Classes
             if (trainer is null)
                 return null;
 
-            return new UpdateTrainerViewModel
-            {
-                Name = trainer.Name,
-                Email = trainer.Email,
-                Phone = trainer.Phone,
-                Specialty = trainer.Specialty,
-                BuildingNumber = trainer.Address.BuildingNumber,
-                City = trainer.Address.City,
-                Street = trainer.Address.Street
-
-            };
+            return mapper.Map<UpdateTrainerViewModel>(trainer);
         }
     }
 }

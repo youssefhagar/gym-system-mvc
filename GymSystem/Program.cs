@@ -1,5 +1,6 @@
 using GymSystem.BLL.Service.Classes;
 using GymSystem.BLL.Service.Interfaces;
+using GymSystem.BLL.MappingProfiles;
 using GymSystem.DAL.Data.DbContexts;
 using GymSystem.DAL.Repository.Classes;
 using GymSystem.DAL.Repository.Interfaces;
@@ -21,6 +22,10 @@ namespace GymSystem
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IPlanService, PlanService>();
             builder.Services.AddScoped<ITrainerService, TrainerService>();
+
+            builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
+
+
             builder.Services.AddDbContext<GymDbContext>(option =>
              option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );

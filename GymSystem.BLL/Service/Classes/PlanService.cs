@@ -1,4 +1,5 @@
-﻿using GymSystem.BLL.Service.Interfaces;
+﻿using AutoMapper;
+using GymSystem.BLL.Service.Interfaces;
 using GymSystem.BLL.ViewModels.PlanViewModels;
 using GymSystem.DAL.Data.Models;
 using GymSystem.DAL.Repository.Interfaces;
@@ -13,10 +14,12 @@ namespace GymSystem.BLL.Service.Classes
     public class PlanService : IPlanService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper mapper;
 
-        public PlanService(IUnitOfWork unitOfWork)
+        public PlanService(IUnitOfWork unitOfWork,IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
         public async Task<IEnumerable<PlanViewModel>> GetAllPlansAsync(CancellationToken ct = default)
@@ -25,14 +28,7 @@ namespace GymSystem.BLL.Service.Classes
                 .GetRepository<Plan>()
                 .GetAllAsync(ct: ct);
 
-            return plans.Select(p => new PlanViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                DurationDays = p.DurationDays,
-                Price = p.Price,
-                IsActive = p.IsActive
-            });
+            return mapper.Map<IEnumerable<PlanViewModel>>(plans); ;
         }
 
         public async Task<PlanViewModel?> GetPlanByIdAsync(int id, CancellationToken ct = default)
@@ -44,15 +40,7 @@ namespace GymSystem.BLL.Service.Classes
             if (plan is null)
                 return null;
 
-            return new PlanViewModel
-            {
-                Id = plan.Id,
-                Name = plan.Name,
-                Description = plan.Description,
-                DurationDays = plan.DurationDays,
-                Price = plan.Price,
-                IsActive = plan.IsActive
-            };
+            return mapper.Map<PlanViewModel>(plan);
         }
 
         public async Task<bool> CreatePlanAsync(CreatePlanViewModel model, CancellationToken ct = default)
@@ -64,14 +52,7 @@ namespace GymSystem.BLL.Service.Classes
             if (exists)
                 return false;
 
-            var plan = new Plan
-            {
-                Name = model.Name,
-                Description = model.Description,
-                DurationDays = model.DurationDays,
-                Price = model.Price,
-                IsActive = true
-            };
+            var plan = mapper.Map<Plan>(model);
 
             unitOfWork.GetRepository<Plan>().AddAsync(plan);
 
@@ -89,10 +70,7 @@ namespace GymSystem.BLL.Service.Classes
             if (plan is null)
                 return false;
 
-            plan.Name = model.Name;
-            plan.Description = model.Description;
-            plan.DurationDays = model.DurationDays;
-            plan.Price = model.Price;
+            mapper.Map(model, plan);
             plan.UpdatedAt = DateTime.Now;
 
             unitOfWork.GetRepository<Plan>().UpdateAsync(plan);
