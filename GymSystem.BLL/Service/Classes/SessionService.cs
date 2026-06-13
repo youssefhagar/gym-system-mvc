@@ -61,6 +61,19 @@ namespace GymSystem.BLL.Service.Classes
             return mapper.Map<IEnumerable<CategorySelectViewModel>>(result);
         }
 
+        public async Task<Result<SessionViewModel>?> GetSessionByIdAsync(int id, CancellationToken ct = default)
+        {
+            var session = await unitOfWork.SessionRepository.GetSessionWithTrainerAndCategory(id,ct);
+            if (session == null)
+                return Result<SessionViewModel>.NotFound("SessionNot Found");
+            else
+            {
+                var mappedSession =  mapper.Map<SessionViewModel>(session);
+                mappedSession.AvailableSlots = mappedSession.Capacity - await unitOfWork.SessionRepository.GetCountOfBookedSlots(id, ct);
+                return Result<SessionViewModel>.Ok(mappedSession);
+            }
+        }
+
         public async Task<IEnumerable<SessionViewModel>?> GetSessions(CancellationToken ct = default)
         {
             var sessions = await unitOfWork.SessionRepository.GetAllSessionsWithTrainerAndCategory(ct);

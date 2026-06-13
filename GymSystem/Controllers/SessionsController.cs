@@ -59,6 +59,18 @@ namespace GymSystem.PL.Controllers
 
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Details(int id,CancellationToken ct)
+        {
+            var session = await sessionService.GetSessionByIdAsync(id,ct);
+            if(session == null)
+            {
+                TempData["ErrorMessage"] = "Session Not Found";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(session.Value);  
+        }
+
 
 
         private async Task PopulateDropDown()
