@@ -19,8 +19,7 @@ namespace GymSystem.BLL.Service.Classes
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<TrainerViewModel>> GetAllAsync(
-            CancellationToken ct = default)
+        public async Task<IEnumerable<TrainerViewModel>> GetAllAsync(CancellationToken ct = default)
         {
             var trainers = await unitOfWork
                 .GetRepository<Trainer>()
@@ -36,9 +35,7 @@ namespace GymSystem.BLL.Service.Classes
             });
         }
 
-        public async Task<TrainerViewModel?> GetByIdAsync(
-            int id,
-            CancellationToken ct = default)
+        public async Task<TrainerViewModel?> GetByIdAsync(int id, CancellationToken ct = default)
         {
             var trainer = await unitOfWork
                 .GetRepository<Trainer>()
@@ -53,13 +50,15 @@ namespace GymSystem.BLL.Service.Classes
                 Name = trainer.Name,
                 Email = trainer.Email,
                 Phone = trainer.Phone,
-                Specialty = trainer.Specialty.ToString()
+                Specialty = trainer.Specialty.ToString(),
+                //Gender = trainer.Gender.ToString(),
+                //DateOfBirth = trainer.DateOfBirth.ToShortDateString(),
+                //Address = trainer.Address.Street
+
             };
         }
 
-        public async Task<bool> CreateAsync(
-            CreateTrainerViewModel model,
-            CancellationToken ct = default)
+        public async Task<bool> CreateAsync(CreateTrainerViewModel model, CancellationToken ct = default)
         {
             var emailExists = await unitOfWork
                 .GetRepository<Trainer>()
@@ -89,14 +88,9 @@ namespace GymSystem.BLL.Service.Classes
             return await unitOfWork.SaveChangesAsync(ct) > 0;
         }
 
-        public async Task<bool> UpdateAsync(
-            int id,
-            UpdateTrainerViewModel model,
-            CancellationToken ct = default)
+        public async Task<bool> UpdateAsync(int id, UpdateTrainerViewModel model, CancellationToken ct = default)
         {
-            var trainer = await unitOfWork
-                .GetRepository<Trainer>()
-                .GetByIdAsync(id, ct);
+            var trainer = await unitOfWork.GetRepository<Trainer>().GetByIdAsync(id, ct);
 
             if (trainer is null)
                 return false;
@@ -104,7 +98,7 @@ namespace GymSystem.BLL.Service.Classes
             trainer.Name = model.Name;
             trainer.Email = model.Email;
             trainer.Phone = model.Phone;
-            trainer.Specialty = model.Specialty;
+            trainer.Specialty = model.Specialty.Value;
 
             trainer.Address.Street = model.Street;
             trainer.Address.City = model.City;
@@ -112,15 +106,12 @@ namespace GymSystem.BLL.Service.Classes
 
             trainer.UpdatedAt = DateTime.Now;
 
-            unitOfWork.GetRepository<Trainer>()
-                .UpdateAsync(trainer);
+            unitOfWork.GetRepository<Trainer>().UpdateAsync(trainer);
 
             return await unitOfWork.SaveChangesAsync(ct) > 0;
         }
 
-        public async Task<bool> DeleteAsync(
-            int id,
-            CancellationToken ct = default)
+        public async Task<bool> DeleteAsync( int id, CancellationToken ct = default)
         {
             var trainer = await unitOfWork
                 .GetRepository<Trainer>()
@@ -133,6 +124,26 @@ namespace GymSystem.BLL.Service.Classes
                 .DeleteAsync(trainer);
 
             return await unitOfWork.SaveChangesAsync(ct) > 0;
+        }
+
+        public async Task<UpdateTrainerViewModel?> GetTrainerToUpdateAsync(int id, CancellationToken ct = default)
+        {
+            var trainer = await unitOfWork.GetRepository<Trainer>().GetByIdAsync(id, ct);
+
+            if (trainer is null)
+                return null;
+
+            return new UpdateTrainerViewModel
+            {
+                Name = trainer.Name,
+                Email = trainer.Email,
+                Phone = trainer.Phone,
+                Specialty = trainer.Specialty,
+                BuildingNumber = trainer.Address.BuildingNumber,
+                City = trainer.Address.City,
+                Street = trainer.Address.Street
+
+            };
         }
     }
 }

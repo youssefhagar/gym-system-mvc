@@ -24,7 +24,7 @@ namespace GymSystem.BLL.ViewModels.TrainerViewModels
         public string Phone { get; set; } = default!;
 
         [Required]
-        public Specialty Specialty { get; set; }
+        public Specialty? Specialty { get; set; }
 
         [Required]
         [Range(1, 9000)]

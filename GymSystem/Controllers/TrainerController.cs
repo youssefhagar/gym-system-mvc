@@ -56,12 +56,14 @@ namespace GymSystem.PL.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var trainer = await trainerService.GetByIdAsync(id);
+
+            var trainer = await trainerService.GetTrainerToUpdateAsync(id); // UpdateTrainerViewModel
 
             if (trainer is null)
                 return NotFound();
 
-            return View();
+            return View(trainer);
+            
         }
 
         [HttpPost]
