@@ -1,5 +1,7 @@
 ﻿using GymSystem.BLL.Service.Interfaces;
+using GymSystem.BLL.ViewModels.SessionViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GymSystem.PL.Controllers
 {
@@ -23,5 +25,48 @@ namespace GymSystem.PL.Controllers
 
             return View(sessions);
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            await PopulateDropDown();
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateSessionViewModel model,CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                await PopulateDropDown();
+                return View(model);
+            }
+                
+            var result = await sessionService.CreateSessionAsync(model,ct);
+
+            if(result)
+            {
+                TempData["SuccessMessage"] = "Session Created Successfully";
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Faild To Create Session, Please cheak the input data";
+            }
+            await PopulateDropDown();
+            return View(model);
+
+        }
+
+
+
+        private async Task PopulateDropDown()
+        {
+            ViewBag.Trainers = new SelectList(await sessionService.GetTrainerForropDownAsync(), "Id", "Name");
+            ViewBag.Categories = new SelectList(await sessionService.GetCategoryForropDownAsync(), "Id", "CategoryName"); 
+        }
+
+
     }
 }

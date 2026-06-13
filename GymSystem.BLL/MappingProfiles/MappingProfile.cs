@@ -123,6 +123,9 @@ namespace GymSystem.BLL.MappingProfiles
                 .ForMember(des => des.TrainerName, opt => opt.MapFrom(src => src.Trainer.Name))
                 .ForMember(des => des.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName));
 
+            CreateMap<CreateSessionViewModel, Session>();
+            CreateMap<Category, CategorySelectViewModel>();
+            CreateMap<Trainer, TrainerSelectViewModel>();
 
             #endregion
 

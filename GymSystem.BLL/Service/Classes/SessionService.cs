@@ -22,8 +22,31 @@ namespace GymSystem.BLL.Service.Classes
             this.mapper = mapper;
         }
 
+        public async Task<bool> CreateSessionAsync(CreateSessionViewModel model, CancellationToken ct = default)
+        {
+            if (model.EndDate <= model.StartDate || model.StartDate <= DateTime.Now) return false;
+            if(model.Capacity <1 ||  model.Capacity > 25) return false;
 
+            var trainerexist = await unitOfWork.GetRepository<Trainer>().GetByIdAsync(model.TrainerId, ct);
+            var categoryexist = await unitOfWork.GetRepository<Category>().GetByIdAsync(model.CategoryId, ct);
 
+            if(trainerexist == null || categoryexist == null) return false;
+
+            var session = mapper.Map<CreateSessionViewModel,Session>(model);
+            unitOfWork.GetRepository<Session>().AddAsync(session);
+
+            return await unitOfWork.SaveChangesAsync(ct) > 0;
+
+        }
+
+        public async Task<IEnumerable<CategorySelectViewModel>?> GetCategoryForropDownAsync(CancellationToken ct = default)
+        {
+            var result = await unitOfWork.GetRepository<Category>().GetAllAsync(ct:ct);
+            if (result == null || !result.Any())
+                return null;
+
+            return mapper.Map<IEnumerable<CategorySelectViewModel>>(result);
+        }
 
         public async Task<IEnumerable<SessionViewModel>?> GetSessions(CancellationToken ct = default)
         {
@@ -40,6 +63,15 @@ namespace GymSystem.BLL.Service.Classes
 
             return sessionsViewModel;
 
+        }
+
+        public async Task<IEnumerable<TrainerSelectViewModel>?> GetTrainerForropDownAsync(CancellationToken ct = default)
+        {
+            var result = await unitOfWork.GetRepository<Trainer>().GetAllAsync(ct: ct);
+            if (result == null || !result.Any())
+                return null;
+
+            return mapper.Map<IEnumerable<TrainerSelectViewModel>>(result);
         }
     }
 }

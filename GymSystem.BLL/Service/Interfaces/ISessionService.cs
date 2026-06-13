@@ -11,6 +11,9 @@ namespace GymSystem.BLL.Service.Interfaces
     {
         //index =>GetAllSession(ct) => SessionViewModel
         Task<IEnumerable<SessionViewModel>?> GetSessions(CancellationToken ct = default);
+        Task<bool> CreateSessionAsync(CreateSessionViewModel model, CancellationToken ct = default);
+        Task<IEnumerable<CategorySelectViewModel>?> GetCategoryForropDownAsync(CancellationToken ct = default);
+        Task<IEnumerable<TrainerSelectViewModel>?> GetTrainerForropDownAsync(CancellationToken ct = default);
 
 
     }
