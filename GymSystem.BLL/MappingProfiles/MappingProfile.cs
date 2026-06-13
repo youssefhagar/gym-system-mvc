@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GymSystem.BLL.ViewModels.MemberViewModels;
 using GymSystem.BLL.ViewModels.PlanViewModels;
+using GymSystem.BLL.ViewModels.SessionViewModels;
 using GymSystem.BLL.ViewModels.TrainerViewModels;
 using GymSystem.DAL.Data.Models;
 using System;
@@ -112,6 +113,16 @@ namespace GymSystem.BLL.MappingProfiles
                     opt => opt.Ignore())
                 .ForMember(dest => dest.MemberShips,
                     opt => opt.Ignore());
+
+            #endregion
+
+
+            #region Session
+
+            CreateMap<Session, SessionViewModel>()
+                .ForMember(des => des.TrainerName, opt => opt.MapFrom(src => src.Trainer.Name))
+                .ForMember(des => des.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName));
+
 
             #endregion
 
