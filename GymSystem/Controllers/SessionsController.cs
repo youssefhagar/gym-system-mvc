@@ -45,14 +45,14 @@ namespace GymSystem.PL.Controllers
                 
             var result = await sessionService.CreateSessionAsync(model,ct);
 
-            if(result)
+            if(result.Success)
             {
                 TempData["SuccessMessage"] = "Session Created Successfully";
                 return RedirectToAction(nameof(Index));
             }
             else
             {
-                TempData["ErrorMessage"] = "Faild To Create Session, Please cheak the input data";
+                TempData["ErrorMessage"] = result.Error;
             }
             await PopulateDropDown();
             return View(model);

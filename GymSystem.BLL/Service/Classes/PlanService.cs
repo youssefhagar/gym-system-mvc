@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GymSystem.BLL.Common;
 using GymSystem.BLL.Service.Interfaces;
 using GymSystem.BLL.ViewModels.PlanViewModels;
 using GymSystem.DAL.Data.Models;
@@ -43,42 +44,43 @@ namespace GymSystem.BLL.Service.Classes
             return mapper.Map<PlanViewModel>(plan);
         }
 
-        public async Task<bool> CreatePlanAsync(CreatePlanViewModel model, CancellationToken ct = default)
+        public async Task<Result> CreatePlanAsync(CreatePlanViewModel model, CancellationToken ct = default)
         {
             var exists = await unitOfWork
                 .GetRepository<Plan>()
                 .AnyAsync(x => x.Name == model.Name, ct);
 
             if (exists)
-                return false;
+                return Result.Conflict("Plan name already exists");
 
             var plan = mapper.Map<Plan>(model);
 
             unitOfWork.GetRepository<Plan>().AddAsync(plan);
+            var result = await unitOfWork.SaveChangesAsync(ct);
 
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
+            return result > 0 ? Result.Ok(): Result.Fail("Failed to create plan");
         }
 
-        public async Task<bool> UpdatePlanAsync(int id,
-            UpdatePlanViewModel model,
-            CancellationToken ct = default)
+        public async Task<Result> UpdatePlanAsync(int id, UpdatePlanViewModel model,CancellationToken ct = default)
         {
             var plan = await unitOfWork
                 .GetRepository<Plan>()
                 .GetByIdAsync(id, ct);
 
             if (plan is null)
-                return false;
+                return Result.NotFound("Plan not found");
 
             mapper.Map(model, plan);
             plan.UpdatedAt = DateTime.Now;
 
             unitOfWork.GetRepository<Plan>().UpdateAsync(plan);
 
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok() : Result.Fail("Failed to update plan");
         }
 
-        public async Task<bool> DeletePlanAsync(int id,
+        public async Task<Result> DeletePlanAsync(int id,
             CancellationToken ct = default)
         {
             var plan = await unitOfWork
@@ -86,13 +88,15 @@ namespace GymSystem.BLL.Service.Classes
                 .GetByIdAsync(id, ct);
 
             if (plan is null)
-                return false;
+                return Result.NotFound("Plan not found");
 
             plan.IsActive = false;
 
             unitOfWork.GetRepository<Plan>().UpdateAsync(plan);
 
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok() : Result.Fail("Failed to Remove plan");
         }
     }
 }

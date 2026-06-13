@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GymSystem.BLL.Common;
 using GymSystem.BLL.Service.Interfaces;
 using GymSystem.BLL.ViewModels.MemberViewModels;
 using GymSystem.DAL.Data.Models;
@@ -25,19 +26,23 @@ namespace GymSystem.BLL.Service.Classes
             this.mapper = mapper;
         }
 
-        public async Task<bool> CreateMemberAsync(CreateMemberViewModel model, CancellationToken ct)
+        public async Task<Result> CreateMemberAsync(CreateMemberViewModel model, CancellationToken ct)
         {
-            var emailexist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Email == model.Email, ct);
-            var phoneexist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Phone == model.Phone, ct);
+            var emailExist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Email == model.Email, ct);
+            var phoneExist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Phone == model.Phone, ct);
 
-            if (emailexist || phoneexist) return false;
+            if (emailExist)
+                return Result.Conflict("Email already exists");
+            if (phoneExist)
+                return Result.Conflict("Phone number already exists");
 
             //else true add ansber
             var member = mapper.Map<CreateMemberViewModel,Member>(model);
 
             unitOfWork.GetRepository<Member>().AddAsync(member);
-            var res = await unitOfWork.SaveChangesAsync(ct);
-            return res > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok(): Result.Fail("Failed to create member");
         }
 
         public async Task<IEnumerable<MemberViewModel>> GetAllMemberAsync(CancellationToken ct = default)
@@ -87,35 +92,40 @@ namespace GymSystem.BLL.Service.Classes
             return model;
         }
 
-        public async Task<bool> UpdateMemberDetailsAsync(int id, MemberToUpdateViewModel model, CancellationToken ct = default)
+        public async Task<Result> UpdateMemberDetailsAsync(int id, MemberToUpdateViewModel model, CancellationToken ct = default)
         {
             var member = await unitOfWork.GetRepository<Member>().GetByIdAsync(id, ct);
             if (member is null)
-                return false;
-            var emailexist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Email == model.Email && x.Id != id);
-            var phoneexist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Phone == model.Phone && x.Id != id);
+                return Result.NotFound("Member not found");
+            var emailExist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Email == model.Email && x.Id != id);
+            var phoneExist = await unitOfWork.GetRepository<Member>().AnyAsync(x => x.Phone == model.Phone && x.Id != id);
 
-            if (emailexist || phoneexist) return false;
+            if (emailExist)
+                return Result.Conflict("Email already exists");
+            if (phoneExist)
+                return Result.Conflict("Phone number already exists");
 
             mapper.Map(model, member);
             member.UpdatedAt = DateTime.Now;
 
             unitOfWork.GetRepository<Member>().UpdateAsync(member);
-            var res = await unitOfWork.SaveChangesAsync(ct);
-            return res > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+            return result > 0 ? Result.Ok() : Result.Fail("Failed to update member");
         }
 
-        public async Task<bool> DeleteMemberAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteMemberAsync(int id, CancellationToken ct = default)
         {
             var member = await unitOfWork.GetRepository<Member>().GetByIdAsync(id, ct);
-            if (member is null)return false;
+            if (member is null)
+                return Result.NotFound("Member not found");
 
             var hasfuturebooking = await unitOfWork.GetRepository<Booking>().AnyAsync(x=>x.MemberId==id && x.Session.StartDate > DateTime.Now);
-            if(hasfuturebooking) return false;
+            if(hasfuturebooking)
+                return Result.Conflict("Cannot delete member because they have future bookings");
 
             unitOfWork.GetRepository<Member>().DeleteAsync(member);
-            var res = await unitOfWork.SaveChangesAsync(ct);
-            return res > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+            return result > 0 ? Result.Ok() : Result.Fail("Failed to update member");
 
         }
     }

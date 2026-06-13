@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GymSystem.BLL.Common;
 using GymSystem.BLL.Service.Interfaces;
 using GymSystem.BLL.ViewModels.TrainerViewModels;
 using GymSystem.DAL.Data.Models;
@@ -43,50 +44,56 @@ namespace GymSystem.BLL.Service.Classes
             return mapper.Map<TrainerViewModel>(trainer);
         }
 
-        public async Task<bool> CreateAsync(CreateTrainerViewModel model, CancellationToken ct = default)
+        public async Task<Result> CreateAsync( CreateTrainerViewModel model,CancellationToken ct = default)
         {
-            var emailExists = await unitOfWork
-                .GetRepository<Trainer>()
-                .AnyAsync(x => x.Email == model.Email, ct);
+            var emailExists = await unitOfWork.GetRepository<Trainer>().AnyAsync(x => x.Email == model.Email, ct);
 
             if (emailExists)
-                return false;
+                return Result.Conflict("Email already exists");
 
-            var trainer = mapper.Map<CreateTrainerViewModel, Trainer>(model);
+            var trainer = mapper.Map<Trainer>(model);
 
             unitOfWork.GetRepository<Trainer>().AddAsync(trainer);
 
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0
+                ? Result.Ok()
+                : Result.Fail("Failed to create trainer");
         }
 
-        public async Task<bool> UpdateAsync(int id, UpdateTrainerViewModel model, CancellationToken ct = default)
-        {
-            var trainer = await unitOfWork.GetRepository<Trainer>().GetByIdAsync(id, ct);
-
-            if (trainer is null)
-                return false;
-
-            mapper.Map(model, trainer);
-            trainer.UpdatedAt = DateTime.Now;
-
-            unitOfWork.GetRepository<Trainer>().UpdateAsync(trainer);
-
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
-        }
-
-        public async Task<bool> DeleteAsync( int id, CancellationToken ct = default)
+        public async Task<Result> UpdateAsync(int id, UpdateTrainerViewModel model, CancellationToken ct = default)
         {
             var trainer = await unitOfWork
                 .GetRepository<Trainer>()
                 .GetByIdAsync(id, ct);
 
             if (trainer is null)
-                return false;
+                return Result.NotFound("Trainer not found");
 
-            unitOfWork.GetRepository<Trainer>()
-                .DeleteAsync(trainer);
+            mapper.Map(model, trainer);
+            trainer.UpdatedAt = DateTime.Now;
 
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
+            unitOfWork.GetRepository<Trainer>().UpdateAsync(trainer);
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok() : Result.Fail("Failed to update trainer");
+        }
+
+        public async Task<Result> DeleteAsync( int id,CancellationToken ct = default)
+        {
+            var trainer = await unitOfWork
+                .GetRepository<Trainer>()
+                .GetByIdAsync(id, ct);
+
+            if (trainer is null)
+                return Result.NotFound("Trainer not found");
+
+            unitOfWork.GetRepository<Trainer>().DeleteAsync(trainer);
+
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok(): Result.Fail("Failed to delete trainer");
         }
 
         public async Task<UpdateTrainerViewModel?> GetTrainerToUpdateAsync(int id, CancellationToken ct = default)

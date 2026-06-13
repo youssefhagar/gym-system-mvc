@@ -37,11 +37,10 @@ namespace GymSystem.PL.Controllers
             // Save
             var res = await memberServic.CreateMemberAsync(model, ct);
 
-            if (res)
-                TempData["SuccessMessage"] = "Memder Created Successfully";
+            if (res.Success)
+                TempData["SuccessMessage"] = "Member Created Successfully";
             else
-                TempData["ErrorMessage"] = "Failed To Create Member" +
-                    "";
+                TempData["ErrorMessage"] = res.Error;
             return RedirectToAction(nameof(Index));
         }
 
@@ -85,10 +84,14 @@ namespace GymSystem.PL.Controllers
         {
             if (!ModelState.IsValid) return View(member);
             var res = await memberServic.UpdateMemberDetailsAsync(id,member,ct);
-            if (res)
-                TempData["SuccessMessage"] = "Member updated successfully";
+            if (res.Success)
+            {
+                TempData["SuccessMessage"] = "Member Updated successfully";
+            }
             else
-                TempData["ErrorMessage"] = "Member update Failed";
+            {
+                TempData["ErrorMessage"] = res.Error;
+            }
 
             return RedirectToAction(nameof(Index));
 
@@ -110,13 +113,13 @@ namespace GymSystem.PL.Controllers
         public async Task<IActionResult> DeleteConfirmed([FromRoute]int id ,CancellationToken ct)
         {
             var res = await memberServic.DeleteMemberAsync(id,ct);
-            if (res)
+            if (res.Success)
             {
                 TempData["SuccessMessage"] = "Member Deleted successfully";
             }
             else
             {
-                TempData["ErrorMessage"] = "Member Deleted Failed";
+                TempData["ErrorMessage"] = res.Error;
             }
             return RedirectToAction(nameof(Index));
         }

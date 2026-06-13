@@ -44,9 +44,9 @@ namespace GymSystem.PL.Controllers
 
             var result = await trainerService.CreateAsync(model);
 
-            if (!result)
+            if (!result.Success)
             {
-                ModelState.AddModelError("", "Trainer Already Exists");
+                ModelState.AddModelError("", result.Error!);
                 return View(model);
             }
 
@@ -74,8 +74,8 @@ namespace GymSystem.PL.Controllers
 
             var result = await trainerService.UpdateAsync(id, model);
 
-            if (!result)
-                return BadRequest();
+            if (!result.Success)
+                return BadRequest(result.Error);
 
             return RedirectToAction(nameof(Index));
         }
@@ -95,7 +95,12 @@ namespace GymSystem.PL.Controllers
 
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await trainerService.DeleteAsync(id);
+            var result = await trainerService.DeleteAsync(id);
+
+            if (!result.Success)
+                TempData["ErrorMessage"] = result.Error;
+            else
+                TempData["SuccessMessage"] = "Trainer deleted successfully";
 
             return RedirectToAction(nameof(Index));
         }

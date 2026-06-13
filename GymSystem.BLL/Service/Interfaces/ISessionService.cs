@@ -1,4 +1,5 @@
-﻿using GymSystem.BLL.ViewModels.SessionViewModels;
+﻿using GymSystem.BLL.Common;
+using GymSystem.BLL.ViewModels.SessionViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace GymSystem.BLL.Service.Interfaces
     {
         //index =>GetAllSession(ct) => SessionViewModel
         Task<IEnumerable<SessionViewModel>?> GetSessions(CancellationToken ct = default);
-        Task<bool> CreateSessionAsync(CreateSessionViewModel model, CancellationToken ct = default);
+        Task<Result> CreateSessionAsync(CreateSessionViewModel model, CancellationToken ct = default);
         Task<IEnumerable<CategorySelectViewModel>?> GetCategoryForropDownAsync(CancellationToken ct = default);
         Task<IEnumerable<TrainerSelectViewModel>?> GetTrainerForropDownAsync(CancellationToken ct = default);
 

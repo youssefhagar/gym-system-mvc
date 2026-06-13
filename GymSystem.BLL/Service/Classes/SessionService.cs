@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GymSystem.BLL.Common;
 using GymSystem.BLL.Service.Interfaces;
 using GymSystem.BLL.ViewModels.SessionViewModels;
 using GymSystem.DAL.Data.Models;
@@ -22,20 +23,32 @@ namespace GymSystem.BLL.Service.Classes
             this.mapper = mapper;
         }
 
-        public async Task<bool> CreateSessionAsync(CreateSessionViewModel model, CancellationToken ct = default)
+        public async Task<Result> CreateSessionAsync(CreateSessionViewModel model, CancellationToken ct = default)
         {
-            if (model.EndDate <= model.StartDate || model.StartDate <= DateTime.Now) return false;
-            if(model.Capacity <1 ||  model.Capacity > 25) return false;
+            if (model.EndDate <= model.StartDate)
+                return Result.Validation("End date must be after start date");
 
-            var trainerexist = await unitOfWork.GetRepository<Trainer>().GetByIdAsync(model.TrainerId, ct);
-            var categoryexist = await unitOfWork.GetRepository<Category>().GetByIdAsync(model.CategoryId, ct);
+            if (model.StartDate <= DateTime.Now)
+                return Result.Validation("Start date must be in the future");
 
-            if(trainerexist == null || categoryexist == null) return false;
+            if (model.Capacity < 1 || model.Capacity > 25)
+                return Result.Validation("Capacity must be between 1 and 25");
+
+            var trainerExist = await unitOfWork.GetRepository<Trainer>().GetByIdAsync(model.TrainerId, ct);
+            var categoryExist = await unitOfWork.GetRepository<Category>().GetByIdAsync(model.CategoryId, ct);
+
+            if (trainerExist is null)
+                return Result.NotFound("Trainer not found");
+
+            if (categoryExist is null)
+                return Result.NotFound("Category not found");
 
             var session = mapper.Map<CreateSessionViewModel,Session>(model);
             unitOfWork.GetRepository<Session>().AddAsync(session);
 
-            return await unitOfWork.SaveChangesAsync(ct) > 0;
+            var result = await unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok() : Result.Fail("Failed to create session");
 
         }
 
