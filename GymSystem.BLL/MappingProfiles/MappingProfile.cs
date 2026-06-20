@@ -126,6 +126,7 @@ namespace GymSystem.BLL.MappingProfiles
             CreateMap<CreateSessionViewModel, Session>();
             CreateMap<Category, CategorySelectViewModel>();
             CreateMap<Trainer, TrainerSelectViewModel>();
+            CreateMap<UpdateSessionViewModel,Session>().ReverseMap();
 
             #endregion
 
