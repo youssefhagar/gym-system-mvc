@@ -1,15 +1,18 @@
 using GymSystem.BLL.Service.Classes;
 using GymSystem.BLL.Service.Interfaces;
+using GymSystem.BLL.MappingProfiles;
 using GymSystem.DAL.Data.DbContexts;
 using GymSystem.DAL.Repository.Classes;
 using GymSystem.DAL.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using GymSystem.PL;
 
 namespace GymSystem
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -21,12 +24,22 @@ namespace GymSystem
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IPlanService, PlanService>();
             builder.Services.AddScoped<ITrainerService, TrainerService>();
+            builder.Services.AddScoped<ISessionRepository, SessionRepository>();
+            builder.Services.AddScoped<ISessionService, SessionService>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+            builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+
+            builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
+
+
             builder.Services.AddDbContext<GymDbContext>(option =>
              option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
 
 
             var app = builder.Build();
+
+            await app.MigrateAndSeedDataAsync();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
