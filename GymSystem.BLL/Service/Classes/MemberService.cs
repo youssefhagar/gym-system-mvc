@@ -19,11 +19,13 @@ namespace GymSystem.BLL.Service.Classes
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
+        private readonly IAttachmentService attachmentService;
 
-        public MemberService(IUnitOfWork unitOfWork,IMapper mapper)
+        public MemberService(IUnitOfWork unitOfWork,IMapper mapper,IAttachmentService attachmentService)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
+            this.attachmentService = attachmentService;
         }
 
         public async Task<Result> CreateMemberAsync(CreateMemberViewModel model, CancellationToken ct)
@@ -38,6 +40,11 @@ namespace GymSystem.BLL.Service.Classes
 
             //else true add ansber
             var member = mapper.Map<CreateMemberViewModel,Member>(model);
+
+            var photo = await attachmentService.UploadAsync(model.PhotoFile.OpenReadStream(), model.PhotoFile.FileName,"MemberPicture" ,ct)!;
+            if(string.IsNullOrEmpty(photo))
+                return Result.Fail("Failed to upload photo");
+            member.Photo = photo;
 
             unitOfWork.GetRepository<Member>().AddAsync(member);
             var result = await unitOfWork.SaveChangesAsync(ct);
@@ -124,6 +131,11 @@ namespace GymSystem.BLL.Service.Classes
                 return Result.Conflict("Cannot delete member because they have future bookings");
 
             unitOfWork.GetRepository<Member>().DeleteAsync(member);
+            if(member.Photo is not null)
+            {
+               attachmentService.Delete(member.Photo, "MemberPicture");
+                
+            }
             var result = await unitOfWork.SaveChangesAsync(ct);
             return result > 0 ? Result.Ok() : Result.Fail("Failed to update member");
 

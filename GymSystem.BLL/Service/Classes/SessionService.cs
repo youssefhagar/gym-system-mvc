@@ -52,6 +52,32 @@ namespace GymSystem.BLL.Service.Classes
 
         }
 
+        public async Task<Result> DeleteSessionAsync(int id, CancellationToken ct = default)
+        {
+            var repo = unitOfWork.GetRepository<Session>();
+            var session = await repo.GetByIdAsync(id, ct);
+
+            if (session is null)
+                return Result.NotFound("Session not found");
+
+            try
+            {
+                if (session.StartDate <= DateTime.Now)
+                    return Result.Fail("session already active ,Can not delete this session ");
+            }catch(Exception ex)
+            {
+                Console.WriteLine($"\n\n## ERRROR : {ex.Message}\n\n");
+            }
+
+            var bookCount = await unitOfWork.SessionRepository.GetCountOfBookedSlots(id, ct);
+            if (bookCount > 0)
+                return Result.Fail("Can't delete the session is already has bookings");
+
+            repo.DeleteAsync(session);
+            return await unitOfWork.SaveChangesAsync(ct) > 0 ? Result.Ok() : Result.Fail("Failed to update session");
+
+        }
+
         public async Task<IEnumerable<CategorySelectViewModel>?> GetCategoryForropDownAsync(CancellationToken ct = default)
         {
             var result = await unitOfWork.GetRepository<Category>().GetAllAsync(ct:ct);
@@ -98,6 +124,59 @@ namespace GymSystem.BLL.Service.Classes
                 return null;
 
             return mapper.Map<IEnumerable<TrainerSelectViewModel>>(result);
+        }
+
+        public async Task<Result<UpdateSessionViewModel>> GetUpdateSessionsAsync(int id, CancellationToken ct = default)
+        {
+            var repo =  unitOfWork.GetRepository<Session>();
+            var session = await repo.GetByIdAsync(id, ct);
+            if (session is null)
+                return Result<UpdateSessionViewModel>.NotFound("Session Not Found");
+            if(session.StartDate <= DateTime.Now)
+                return Result<UpdateSessionViewModel>.Validation("Cannot update a session that has already started");
+
+            var bookCount = await unitOfWork.SessionRepository.GetCountOfBookedSlots(id, ct);
+            if (bookCount > 0)
+                return Result<UpdateSessionViewModel>.NotFound("Can't Edit the session is already has bookings");
+
+            return Result<UpdateSessionViewModel>.Ok(mapper.Map<UpdateSessionViewModel>(session));
+
+        }
+
+        public async Task<Result> UpdateSessionAsync(int id ,UpdateSessionViewModel model, CancellationToken ct = default)
+        {
+            var repo = unitOfWork.GetRepository<Session>();
+            var session = await repo.GetByIdAsync(id, ct);
+
+            if (session is null)
+                return Result.NotFound("Session Not Found");
+
+            if (session.StartDate <= DateTime.Now)
+                return Result.Validation("Cannot update a session that has already started");
+
+            var bookCount = await unitOfWork.SessionRepository.GetCountOfBookedSlots(id, ct);
+            if (bookCount > 0)
+                return Result.NotFound("Can't Edit the session is already has bookings");
+
+            if(model.EndDate <= model.StartDate)
+                return Result.Validation("End date must be after start date");
+
+            if(model.StartDate <= DateTime.Now)
+                return Result.Validation("Start date must be in the future");
+
+            var Trainerrepo = unitOfWork.GetRepository<Trainer>();
+            var trainerExist = await Trainerrepo.GetByIdAsync(model.TrainerId, ct);
+            if (trainerExist is null)
+                return Result.NotFound("Trainer not found");
+
+            var Categoryrepo = unitOfWork.GetRepository<Category>();
+            var categoryExist = await Categoryrepo.GetByIdAsync(session.CategoryId, ct);
+            if(categoryExist is null)
+                return Result.NotFound("Category not found");
+
+            mapper.Map(model, session);
+            return await unitOfWork.SaveChangesAsync(ct) > 0 ? Result.Ok() : Result.Fail("Failed to update session");
+
         }
     }
 }
