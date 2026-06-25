@@ -46,6 +46,33 @@ namespace GymSystem.BLL.Service.Classes
 
         }
 
+        public (Stream stream, string contenttype)? GetFile(string filename, string foldername)
+        {
+            string filePath = Path.Combine(env.WebRootPath, foldername, filename);
+
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
+
+            var contentType = GetContentType(filename);
+            var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
+            return (fileStream, contentType);
+
+        }
+        private string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLower();
+
+            return extension switch
+            {
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+            };
+        }
+
         public async Task<string>? UploadAsync(Stream stream, string filename, string foldername, CancellationToken ct)
         {
             if (stream is null || !stream.CanRead) return null;

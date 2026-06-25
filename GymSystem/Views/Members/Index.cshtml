@@ -58,8 +58,11 @@ ViewData["Title"] = "Members";
                         <tr>
                             <td>
                                 <span class="avatar">
-                                    <img src="~/images/User.jpg" alt="Default Avatar" class="rounded-circle"
-                                         style="width: 40px; height: 40px;" />
+                                            <img src="/MemberPicture/@member.Photo"
+                                                 alt="Member Photo"
+                                                 style="width: 40px; height: 40px;" />
+                                    @* <img src="~/images/User.jpg" alt="Default Avatar" class="rounded-circle"
+                                         style="width: 40px; height: 40px;" /> *@
                                 </span>
                             </td>
                             <td><span> @member.Name </span></td>

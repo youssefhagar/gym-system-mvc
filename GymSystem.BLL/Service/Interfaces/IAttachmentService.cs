@@ -10,6 +10,6 @@ namespace GymSystem.BLL.Service.Interfaces
     {
         Task<string>? UploadAsync(Stream stream, string filename, string foldername, CancellationToken ct);
         bool Delete(string filename, string foldername);
-       // (string filename, string foldername)? GetAttachment(string filename, string foldername);
+       (Stream stream, string contenttype)? GetFile(string filename, string foldername);
     }
 }
