@@ -69,7 +69,7 @@ namespace GymSystem.PL.Controllers
         public async Task<IActionResult> Edit(int Id,CancellationToken ct)
         { 
             var session = await sessionService.GetUpdateSessionsAsync(Id,ct);
-            if(session.Success)
+            if(session!.Success)
             {
                 await PopulateDropDown();
                 return View(session.Value);

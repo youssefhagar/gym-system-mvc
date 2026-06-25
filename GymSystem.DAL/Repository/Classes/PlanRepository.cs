@@ -29,7 +29,7 @@ namespace GymSystem.DAL.Repository.Classes
 
         public async Task<int> DeleteAsync(Plan plan, CancellationToken ct = default)
         {
-            dbContext.Plans.Add(plan);
+            dbContext.Plans.Remove(plan);
             return await dbContext.SaveChangesAsync(ct);
         }
 

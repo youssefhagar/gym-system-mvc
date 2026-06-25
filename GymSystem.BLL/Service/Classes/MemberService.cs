@@ -91,7 +91,7 @@ namespace GymSystem.BLL.Service.Classes
             if (activemembership is not null)
             {
                 var plan = await unitOfWork.GetRepository<Plan>().GetByIdAsync(activemembership.PlanId);
-                model.PlanName = plan.Name;
+                model.PlanName = plan!.Name;
                 model.MembershipStartDate = activemembership.CreatedAt.ToString();
                 model.MembershipEndDate = activemembership.EndDate.ToString();
             }

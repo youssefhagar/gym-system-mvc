@@ -28,6 +28,8 @@ namespace GymSystem
             builder.Services.AddScoped<ISessionService, SessionService>();
             builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
             builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+            builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
+            builder.Services.AddScoped<IMembershipService, MembershipService>();
 
             builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
@@ -39,7 +41,7 @@ namespace GymSystem
 
             var app = builder.Build();
 
-            await app.MigrateAndSeedDataAsync();
+            //await app.MigrateAndSeedDataAsync();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

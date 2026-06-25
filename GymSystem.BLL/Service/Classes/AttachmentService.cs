@@ -70,23 +70,24 @@ namespace GymSystem.BLL.Service.Classes
                 ".jpg" => "image/jpeg",
                 ".jpeg" => "image/jpeg",
                 ".png" => "image/png",
+                _ => "application/octet-stream",
             };
         }
 
         public async Task<string>? UploadAsync(Stream stream, string filename, string foldername, CancellationToken ct)
         {
-            if (stream is null || !stream.CanRead) return null;
-            if (stream.Length == 0) return null;
+            if (stream is null || !stream.CanRead) return null!;
+            if (stream.Length == 0) return null!;
             if(stream.Length > MaxFileSizeInMB)
             {
                 logger.LogWarning($"File size {stream.Length} bytes is greater than the allowed size of {MaxFileSizeInMB} bytes.");
-                return null;
+                return null!;
             }
             var fileExtention = Path.GetExtension(filename);
             if(String.IsNullOrEmpty(fileExtention) || !allowedExtention.Contains(fileExtention))
             {
                 logger.LogWarning($"File extention {fileExtention} is not allowed.");
-                return null;
+                return null!;
             }
 
             var uploadFolderPath = Path.Combine(env.WebRootPath, foldername);
@@ -102,7 +103,7 @@ namespace GymSystem.BLL.Service.Classes
             catch (Exception)
             {
                 logger.LogWarning($"Failed to upload file {filename} to {filePath}.");
-                return null;
+                return null!;
             }
 
         }
