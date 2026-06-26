@@ -62,7 +62,7 @@
                                 <td>@item.EndDate.ToString("MMM dd, yyyy")</td>
                                 <td>
                                     <div class="d-flex gap-1">
-                                        <form method="post" asp-action="Cancel" class="m-0">
+                                        <form method="post" asp-action="Cancel" asp-route-Id="@item.MemberId" class="m-0">
                                             <input type="hidden" name="id" value="@item.MemberId" />
                                             <button type="submit" class="btn btn-sm btn-danger">
                                                 <i class="fas fa-times"></i> Cancel

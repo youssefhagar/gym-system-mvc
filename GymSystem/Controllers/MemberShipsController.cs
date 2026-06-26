@@ -63,9 +63,9 @@ namespace GymSystem.PL.Controllers
         }
 
         
-        public async Task<IActionResult> Cancel([FromRoute]int memberid, CancellationToken ct)
+        public async Task<IActionResult> Cancel([FromRoute]int id, CancellationToken ct)
         {
-            var result = await _membershipService.DeleteAsync(memberid, ct);
+            var result = await _membershipService.DeleteAsync(id, ct);
             if (!result.Success)
                 TempData["ErrorMessage"] = result.Error;
             else
