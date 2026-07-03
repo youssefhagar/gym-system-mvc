@@ -64,12 +64,9 @@
                                 Memberships
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5" aria-current="page" href="#">
-                                Sessions
-                                Schedule
-                            </a>
-                        </li>
+                        <a asp-controller="Booking" asp-action="Index" class="nav-link px-3 py-2 mx-2 fw-bolder fs-5">
+                            Sessions Schedule
+                        </a>
                         <li class="nav-item">
                             <form href="\Account\Logout" method="post" class="d-inline">
                                 <button type="submit"

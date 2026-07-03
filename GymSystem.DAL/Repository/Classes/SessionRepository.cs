@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,15 +20,22 @@ namespace GymSystem.DAL.Repository.Classes
             this.dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategory(CancellationToken ct = default)
+        public async Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategoryAsync(Expression<Func<Session, bool>>? predicate = null, CancellationToken ct = default)
         {
-            var query = dbContext.Sessions.AsNoTracking().Include(t=>t.Trainer).Include(t=>t.Category);
-            return await query.ToListAsync();
+            IQueryable<Session> query = dbContext.Sessions
+                .AsNoTracking()
+                .Include(s => s.Trainer)
+                .Include(s => s.Category);
+
+            if (predicate is not null) query = query.Where(predicate);
+
+            return await query.ToListAsync(ct);
         }
+
 
         public async Task<int> GetCountOfBookedSlots(int SessionId, CancellationToken ct = default)
         {
-            return await dbContext.Bookings.AsNoTracking().CountAsync(x => x.SessionId == SessionId);
+            return await dbContext.Bookings.AsNoTracking().CountAsync(x => x.SessionId == SessionId, ct);
         }
 
         public async Task<Session?> GetSessionWithTrainerAndCategory(int id, CancellationToken ct = default)

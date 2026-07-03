@@ -9,15 +9,14 @@ using System.Threading.Tasks;
 
 namespace GymSystem.DAL.Repository.Interfaces
 {
-    public interface IMembershipRepository
+    public interface IMembershipRepository : IGenericRepository<MemberShip>
     {
         Task<IEnumerable<MemberShip>> GetAllAsync(Expression<Func<MemberShip, bool>> perdicat=null! ,bool tracking = false, CancellationToken ct = default);
-        Task<MemberShip?> GetByIdAsync(int id, CancellationToken ct = default);
-      
-        Task<int> AddAsync(MemberShip memberShip, CancellationToken ct = default);
-        public Task<int> DeleteAsync(MemberShip memberShip, CancellationToken ct = default);
-        Task<Plan?> GetPlanByIdAsync(Expression<Func<Plan, bool>> perdicat ,bool tracking = false, CancellationToken ct = default);
-        Task<Member?> GetMemberByIdAsync(Expression<Func<Member, bool>> perdicat ,bool tracking = false, CancellationToken ct = default);
-        //Task<Member?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> perdicat, bool tracking = false, CancellationToken ct = default);
+        Task<List<MemberShip>> GetAllMembershipsWithMemberAndPlanAsync(Expression<Func<MemberShip, bool>>? predicate = null, CancellationToken ct = default);
+        Task<Member?> GetMemberByIdAsync(Expression<Func<Member, bool>> predicate, CancellationToken ct = default);
+        Task<Plan?> GetPlanByIdAsync(Expression<Func<Plan, bool>> predicate, CancellationToken ct = default);
+    //    Task<Member?> GetMemberByIdAsync(
+    //Expression<Func<Member, bool>> predicate,
+    //CancellationToken ct = default);
     }
 }

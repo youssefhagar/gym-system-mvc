@@ -13,96 +13,40 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace GymSystem.DAL.Repository.Classes
 {
-    public class MembershipRepository : IMembershipRepository
+    public class MembershipRepository : GenericRepository<MemberShip>, IMembershipRepository
     {
         private readonly GymDbContext _dbContext;
-        private readonly DbSet<MemberShip> _dbSet;
-        //public IGenericRepository<Member> Member { get; }
-        //public IGenericRepository<Plan> Plan { get; }
-        public MembershipRepository(GymDbContext dbContext/*,IGenericRepository<Member> membergenericRepository, IGenericRepository<Plan> plangenericRepository*/)
+
+        public MembershipRepository(GymDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
-            _dbSet = _dbContext.Set<MemberShip>();
-            //Member = membergenericRepository;
-            //Plan = plangenericRepository;
         }
 
-        public async Task<int> AddAsync(MemberShip memberShip, CancellationToken ct = default)
+        public async Task<List<MemberShip>> GetAllMembershipsWithMemberAndPlanAsync(Expression<Func<MemberShip, bool>>? predicate = null,
+           CancellationToken ct = default)
         {
-            _dbContext.MemberShips.Add(memberShip);
-            return await _dbContext.SaveChangesAsync(ct);
+            IQueryable<MemberShip> query = _dbContext.MemberShips.AsNoTracking().Include(m => m.Plan).Include(m => m.Member);
+
+            if (predicate is not null) query = query.Where(predicate);
+
+            return await query.ToListAsync(ct);
         }
 
-        public async Task<int> DeleteAsync(MemberShip memberShip, CancellationToken ct = default)
+        public async Task<Member?> GetMemberByIdAsync(Expression<Func<Member, bool>> predicate, CancellationToken ct = default)
         {
-            _dbContext.MemberShips.Remove(memberShip);
-            return await _dbContext.SaveChangesAsync(ct);
+            return await _dbContext.Members
+                .AsNoTracking()
+                .Include(m => m.MemberShips)
+                .FirstOrDefaultAsync(predicate, ct);
         }
 
-
-        public async Task<MemberShip?> GetByIdAsync(int id, CancellationToken ct = default)
+        public async Task<Plan?> GetPlanByIdAsync(Expression<Func<Plan, bool>> predicate, CancellationToken ct = default)
         {
-            return await _dbContext.MemberShips.FindAsync(id,ct);
+            return await _dbContext.Plans
+                .AsNoTracking()
+                .Include(p => p.MemberShips)
+                .FirstOrDefaultAsync(predicate, ct);
         }
 
-        public async Task<IEnumerable<MemberShip>?> GetAllAsync(Expression<Func<MemberShip, bool>> perdicat = null!, bool tracking = false, CancellationToken ct = default)
-        {
-            try
-            {
-                if (perdicat == null)
-                {
-                    IQueryable<MemberShip> Query = tracking ? _dbSet.Include(X => X.Member).Include(X => X.Plan)
-                        : _dbSet.AsNoTracking().Include(X => X.Member).Include(X => X.Plan);
-                    return await Query.ToListAsync(ct);
-                }
-                else
-                {
-                    IQueryable<MemberShip> Query = tracking ? _dbSet.Where(perdicat).Include(X => X.Member).Include(X => X.Plan)
-                        : _dbSet.AsNoTracking().Where(perdicat).Include(X => X.Member).Include(X => X.Plan);
-                    return await Query.ToListAsync(ct);
-                }
-            
-            }
-            catch (Exception)
-            {
-
-                return null;
-            }
-
-           
-
-        }
-
-        public async Task<Member?> GetMemberByIdAsync(Expression<Func<Member, bool>> perdicat , bool tracking = false, CancellationToken ct = default)
-        {
-            try
-            {
-                var query = tracking ? await _dbContext.Set<Member>().Where(perdicat).Include(X => X.MemberShips).FirstOrDefaultAsync(ct)
-                    : await _dbContext.Set<Member>().AsNoTracking().Where(perdicat).Include(X => X.MemberShips).FirstOrDefaultAsync(ct);
-               
-                return query;
-            }
-            catch (Exception)
-            {
-
-                return null;
-            }
-        }
-
-        public async Task<Plan?> GetPlanByIdAsync(Expression<Func<Plan, bool>> perdicat, bool tracking = false, CancellationToken ct = default)
-        {
-            try
-            {
-                var query = tracking ? await _dbContext.Set<Plan>().Where(perdicat).Include(X => X.MemberShips).FirstOrDefaultAsync(ct)
-                    : await _dbContext.Set<Plan>().AsNoTracking().Where(perdicat).Include(X => X.MemberShips).FirstOrDefaultAsync(ct);
-
-                return query;
-            }
-            catch (Exception)
-            {
-
-                return null;
-            }
-        }
     }
 }

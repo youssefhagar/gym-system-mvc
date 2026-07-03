@@ -55,7 +55,7 @@ namespace GymSystem.BLL.Service.Classes
 
             var plan = mapper.Map<Plan>(model);
 
-            unitOfWork.GetRepository<Plan>().AddAsync(plan);
+            await unitOfWork.GetRepository<Plan>().AddAsync(plan, ct);
             var result = await unitOfWork.SaveChangesAsync(ct);
 
             return result > 0 ? Result.Ok(): Result.Fail("Failed to create plan");

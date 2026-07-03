@@ -5,13 +5,7 @@ using GymSystem.BLL.ViewModels.MemberViewModels;
 using GymSystem.DAL.Data.Models;
 using GymSystem.DAL.Data.Models.Enums;
 using GymSystem.DAL.Repository.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace GymSystem.BLL.Service.Classes
 {
@@ -46,7 +40,7 @@ namespace GymSystem.BLL.Service.Classes
                 return Result.Fail("Failed to upload photo");
             member.Photo = photo;
 
-            unitOfWork.GetRepository<Member>().AddAsync(member);
+            await unitOfWork.GetRepository<Member>().AddAsync(member, ct);
             var result = await unitOfWork.SaveChangesAsync(ct);
 
             return result > 0 ? Result.Ok(): Result.Fail("Failed to create member");

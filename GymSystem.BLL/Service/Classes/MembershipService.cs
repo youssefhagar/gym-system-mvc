@@ -42,14 +42,14 @@ namespace GymSystem.BLL.Service.Classes
             foreach ( var item in member.MemberShips)
             {
                 if (item == null) continue;
-                if (item.IsActive)
-                    return null!;
+                return Result.Fail( "This member already has an active membership.", ResultKind.Conflict);
             }
             foreach ( var item in plan.MemberShips)
             {
                 if (item == null) continue;
                 if (!item.IsActive)
-                    return null!;
+                    return Result.Fail(
+            "The selected plan is not active.", ResultKind.ValidationFailed);
             }
             MemberShip mappedMemberShip = new MemberShip
             {
@@ -59,14 +59,15 @@ namespace GymSystem.BLL.Service.Classes
                 EndDate = DateTime.Now.AddDays(plan.DurationDays),
             };
 
-            var result = await _unitOfWork.MembershipRepository.AddAsync(mappedMemberShip, ct: ct);
+             await _unitOfWork.MembershipRepository.AddAsync(mappedMemberShip);
+            var result = await _unitOfWork.SaveChangesAsync(ct);
             return result > 0 ? Result.Ok() : Result.Fail("Failed to create membership.", ResultKind.Conflict);
         }
 
         public async Task<Result> DeleteAsync(int id, CancellationToken ct = default)
         {
             
-            var member = await _unitOfWork.MembershipRepository.GetMemberByIdAsync(x => x.Id == id, ct: ct); ;
+            var member = await _unitOfWork.MembershipRepository.GetMemberByIdAsync(x => x.Id == id, ct: ct); 
 
             if (member == null)
                 return Result.NotFound($"Member not found.");
@@ -76,7 +77,8 @@ namespace GymSystem.BLL.Service.Classes
                 if (item == null) continue;
                 if (item.IsActive)
                 {
-                    var result = await _unitOfWork.MembershipRepository.DeleteAsync(item, ct);
+                     _unitOfWork.MembershipRepository.DeleteAsync(item);
+                    var result = await _unitOfWork.SaveChangesAsync(ct);
                     return result > 0 ? Result.Ok() : Result.Fail("Failed to delete membership.", ResultKind.Conflict);
                 }
             }
@@ -89,7 +91,7 @@ namespace GymSystem.BLL.Service.Classes
         {
             try
             {
-                var memberships = await _unitOfWork.MembershipRepository.GetAllAsync(ct: ct);
+                var memberships = await _unitOfWork.MembershipRepository.GetAllMembershipsWithMemberAndPlanAsync(ct: ct);
                 if (memberships == null || !memberships.Any())
                 {
                     return Enumerable.Empty<MembershipViewModel>();

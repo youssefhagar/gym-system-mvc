@@ -44,7 +44,7 @@ namespace GymSystem.BLL.Service.Classes
                 return Result.NotFound("Category not found");
 
             var session = mapper.Map<CreateSessionViewModel,Session>(model);
-            unitOfWork.GetRepository<Session>().AddAsync(session);
+            await unitOfWork.GetRepository<Session>().AddAsync(session, ct);
 
             var result = await unitOfWork.SaveChangesAsync(ct);
 
@@ -102,7 +102,7 @@ namespace GymSystem.BLL.Service.Classes
 
         public async Task<IEnumerable<SessionViewModel>?> GetSessions(CancellationToken ct = default)
         {
-            var sessions = await unitOfWork.SessionRepository.GetAllSessionsWithTrainerAndCategory(ct);
+            var sessions = await unitOfWork.SessionRepository.GetAllSessionsWithTrainerAndCategoryAsync(ct: ct);
 
             if (sessions == null || !sessions.Any())
                 return null;

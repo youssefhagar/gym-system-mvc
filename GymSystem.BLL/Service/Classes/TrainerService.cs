@@ -53,7 +53,7 @@ namespace GymSystem.BLL.Service.Classes
 
             var trainer = mapper.Map<Trainer>(model);
 
-            unitOfWork.GetRepository<Trainer>().AddAsync(trainer);
+            await unitOfWork.GetRepository<Trainer>().AddAsync(trainer, ct);
 
             var result = await unitOfWork.SaveChangesAsync(ct);
 

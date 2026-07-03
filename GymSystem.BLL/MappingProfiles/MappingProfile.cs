@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GymSystem.BLL.ViewModels.MembershipViewModels;
 using GymSystem.BLL.ViewModels.MemberViewModels;
 using GymSystem.BLL.ViewModels.PlanViewModels;
 using GymSystem.BLL.ViewModels.SessionViewModels;
@@ -19,6 +20,10 @@ namespace GymSystem.BLL.MappingProfiles
         {
 
             #region Member
+            CreateMap<Member, MemberSelectViewModel>()
+                .ForMember(dest => dest.MemberName, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.MemberId, opt => opt.MapFrom(src => src.Id));
+
 
             CreateMap<Member, MemberViewModel>()
                 .ForMember(des => des.Address, opt => opt.MapFrom(s => $"{s.Address.BuildingNumber} {s.Address.Street} {s.Address.City}"))
